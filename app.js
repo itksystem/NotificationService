@@ -3,23 +3,33 @@ const nodemailer = require('nodemailer');
 const axios = require('axios');
 const WebSocket = require('ws');
 
-
+const { RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_USER, RABBITMQ_PASSWORD, RABBITMQ_QUEUE } = process.env;
+const login = RABBITMQ_USER || 'guest';
+const pwd = RABBITMQ_PASSWORD || 'guest';
+const queue = RABBITMQ_QUEUE || 'mail';
+const host = RABBITMQ_HOST || 'localhost';
+const port = RABBITMQ_PORT || '5672';
+const mail_from = process.env.MAIL_FROM || 'itksystemdemo@yandex.ru';
+const mail_host = process.env.MAIL_HOST || "smtp.yandex.ru"
+const mail_port = process.env.MAIL_PORT || 465
+const mail_login = process.env.MAIL_LOGIN || "itksystemdemo"
+const mail_password = process.env.MAIL_PASSWORD  || "ogitzizpgwgkmvkz"
 
 // Настройка email-транспорта
 const transporter = nodemailer.createTransport({
-    service: 'yandex', // Можно использовать другой сервис
-    host: process.env.MAIL_HOST || "smtp.yandex.ru",
-    port: process.env.MAIL_PORT || 465,
+    host: mail_host,
+    port: mail_port,
+    secure: true,
     auth: {
-        user: process.env.MAIL_LOGIN || "пароль",
-        pass: process.env.MAIL_PASSWORD  || "логин"
+        user: mail_login,
+        pass: mail_password
     }
 });
 
 // Функция отправки email
 async function sendEmail(to, subject, text) {
     try {
-        await transporter.sendMail({ from: process.env.MAIL_FROM, to, subject, text });
+        await transporter.sendMail({ from: mail_from, to, subject, text });
         console.log(`Email отправлен: ${to}`);
     } catch (error) {
         console.error(`Ошибка при отправке email: ${error}`);
@@ -81,13 +91,7 @@ async function processMessage(msg) {
 // Подключение к RabbitMQ и прослушивание очереди
 async function startConsumer() {
     try {
-        const { RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_USER, RABBITMQ_PASSWORD, RABBITMQ_QUEUE } = process.env;
-        let login =  RABBITMQ_USER || 'guest';
-        let pwd =  RABBITMQ_PASSWORD || 'guest';
-        let queue = RABBITMQ_QUEUE || 'mail';
-        let host = RABBITMQ_HOST || 'localhost';
-        let port = RABBITMQ_PORT || '5672';
-    
+          
         const connection = await amqp.connect(`amqp://${login}:${pwd}@${host}:${port}`);
         const channel = await connection.createChannel();
         await channel.assertQueue(queue, { durable: true });
