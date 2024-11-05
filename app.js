@@ -3,33 +3,67 @@ const nodemailer = require('nodemailer');
 const axios = require('axios');
 const WebSocket = require('ws');
 
+const fs = require('fs');
+const path = require('path');
+
 const { RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_USER, RABBITMQ_PASSWORD, RABBITMQ_QUEUE } = process.env;
 const login = RABBITMQ_USER || 'guest';
 const pwd = RABBITMQ_PASSWORD || 'guest';
 const queue = RABBITMQ_QUEUE || 'mail';
 const host = RABBITMQ_HOST || 'localhost';
 const port = RABBITMQ_PORT || '5672';
-const mail_from = process.env.MAIL_FROM || 'itksystemdemo@yandex.ru';
-const mail_host = process.env.MAIL_HOST || "smtp.yandex.ru"
-const mail_port = process.env.MAIL_PORT || 465
-const mail_login = process.env.MAIL_LOGIN || "itksystemdemo"
-const mail_password = process.env.MAIL_PASSWORD  || "ogitzizpgwgkmvkz"
+
+const mail_from = process.env.MAIL_FROM || 'no-reply@openfsm.ru';
+const mail_host = process.env.MAIL_HOST || "localhost"
+const mail_port = process.env.MAIL_PORT || 1025
+const mail_login = process.env.MAIL_LOGIN || "test"
+const mail_password = process.env.MAIL_PASSWORD  || "test"
+const mail_secure = process.env.MAIL_SECURY  || false
 
 // Настройка email-транспорта
 const transporter = nodemailer.createTransport({
     host: mail_host,
     port: mail_port,
-    secure: true,
+    secure: mail_secure,  // локально тестируем - отключили почту
     auth: {
         user: mail_login,
         pass: mail_password
     }
 });
 
-// Функция отправки email
-async function sendEmail(to, subject, text) {
+/**
+  * @param {string} fileName 
+ * @returns {Promise<string>} 
+ */
+async function readTemplateFile(fileName) {
     try {
-        await transporter.sendMail({ from: mail_from, to, subject, text });
+        const filePath = path.join(__dirname, 'templates', fileName);
+        const fileContent = await fs.promises.readFile(filePath, 'utf8');
+        return fileContent;
+    } catch (error) {
+        throw new Error(`Error reading file: ${error.message}`);
+    }
+}
+
+/**
+ * @param {string} template - html шаблон
+ * @param {Object} variables - массив с переменными
+ * @returns {string} - возвращает контент с текстом
+ */
+function fillTemplate(template, variables) {
+    return template.replace(/%(\w+)%/g, (match, varName) => {
+        return varName in variables ? variables[varName] : match;
+    });
+}
+
+// Функция отправки email
+async function sendEmail(to, subject, html, text) {
+    try {        
+        await transporter.sendMail(
+            html 
+            ? { from: mail_from, to, subject, html  }
+            : { from: mail_from, to, subject, text }
+        );
         console.log(`Email отправлен: ${to}`);
     } catch (error) {
         console.error(`Ошибка при отправке email: ${error}`);
@@ -61,17 +95,34 @@ function sendWebSocketMessage(socketUrl, message) {
         console.error(`Ошибка WebSocket: ${error}`);
     });
 }
-// {"route":"mail", "to":"itk_system@mail.ru", "subject":"subject test", "text":"test"}
+/*
+Модель сообщения 
+ {
+  "route": "mail",
+  "template": "NEW_USER_NOTIFICATION",
+  "to": "itk_system@mail.ru",
+  "subject": "Добро пожаловать на PICKMAX.RU - ваш супермаркет в Интернет! ",
+  "text": "test",
+  "variables": {
+    "HOST_NAME": "PICKMAX.RU",
+    "HOST": "pickmax.ru"
+  }
+}
+ */
 // Основная функция для обработки сообщения из очереди
 async function processMessage(msg) {
     try {
         let message = msg.content.toString();
         const messageContent = JSON.parse(message);
-        const { route, to, subject, text } = messageContent;
-    
+        const { route, template, to, subject, text, variables } = messageContent;
+        var html;
+        if(template) {
+            html = fillTemplate(await readTemplateFile(template+'.html'), variables)
+         }
+            
         switch (route) {
-            case 'mail':
-                await sendEmail(to, subject, text);
+            case 'mail':                
+                await sendEmail(to, subject, html, text);
                 break;
             case 'sms':
                 await sendSMS(to, text);
