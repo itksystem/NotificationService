@@ -123,6 +123,7 @@ async function processMessage(msg) {
         let message = msg.content.toString();
         const messageContent = JSON.parse(message);
         const { route, template, to, subject, text, variables } = messageContent;
+        console.log(messageContent)
         var html;
         if(template) {
             html = fillTemplate(await readTemplateFile(template+'.html'), variables)
