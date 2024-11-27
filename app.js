@@ -32,7 +32,7 @@ const mail_secure = MAIL_SECURY  || false
 const transporter = nodemailer.createTransport({
     host: mail_host,
     port: mail_port,
-    secure: mail_secure,  // локально тестируем - отключили почту
+    secure: mail_secure == 'true' ? true : false,  // локально тестируем - отключили почту
     auth: {
         user: mail_login,
         pass: mail_password
