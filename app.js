@@ -2,23 +2,31 @@ const amqp = require('amqplib');
 const nodemailer = require('nodemailer');
 const axios = require('axios');
 const WebSocket = require('ws');
+require('dotenv').config();
+
+
 
 const fs = require('fs');
 const path = require('path');
 
-const { RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_USER, RABBITMQ_PASSWORD, RABBITMQ_QUEUE } = process.env;
+const { RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_USER, RABBITMQ_PASSWORD, RABBITMQ_QUEUE,
+    MAIL_FROM, MAIL_HOST, MAIL_PORT, MAIL_LOGIN, MAIL_PASSWORD,  MAIL_SECURY 
+ } = process.env;
+
+ console.log(process.env);
+
 const login = RABBITMQ_USER || 'guest';
 const pwd = RABBITMQ_PASSWORD || 'guest';
 const queue = RABBITMQ_QUEUE || 'mail';
-const host = RABBITMQ_HOST || 'localhost';
+const host = RABBITMQ_HOST || 'rabbitmq-service';
 const port = RABBITMQ_PORT || '5672';
 
-const mail_from = process.env.MAIL_FROM || 'no-reply@openfsm.ru';
-const mail_host = process.env.MAIL_HOST || "localhost"
-const mail_port = process.env.MAIL_PORT || 1025
-const mail_login = process.env.MAIL_LOGIN || "test"
-const mail_password = process.env.MAIL_PASSWORD  || "test"
-const mail_secure = process.env.MAIL_SECURY  || false
+const mail_from = MAIL_FROM || 'no-reply@openfsm.ru';
+const mail_host = MAIL_HOST || "mailhog"
+const mail_port = MAIL_PORT || 1025
+const mail_login = MAIL_LOGIN || "test"
+const mail_password = MAIL_PASSWORD  || "test"
+const mail_secure = MAIL_SECURY  || false
 
 // Настройка email-транспорта
 const transporter = nodemailer.createTransport({
