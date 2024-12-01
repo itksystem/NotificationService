@@ -120,11 +120,11 @@ function sendWebSocketMessage(socketUrl, message) {
 // Основная функция для обработки сообщения из очереди
 async function processMessage(msg) {
     try {
+        var html;
         let message = msg.content.toString();
         const messageContent = JSON.parse(message);
-        const { route, template, to, subject, text, variables } = messageContent;
+        const { route, template , to, subject, text, variables } = messageContent;
         console.log(messageContent)
-        var html;
         if(template) {
             html = fillTemplate(await readTemplateFile(template+'.html'), variables)
          }
@@ -168,4 +168,4 @@ async function startConsumer() {
     }
 }
 
-startConsumer();
+ startConsumer();
