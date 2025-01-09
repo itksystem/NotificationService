@@ -5,10 +5,15 @@ const authMiddleware = require('openfsm-middlewares-auth-service');
 const logger = require('openfsm-logger-handler');
 require('dotenv').config();
 
-  exports.getProductMail = (productId) => {
+  exports.getProductMail = (productId, userId, ownerId) => {
+    console.log('getProductMail',productId);
     return new Promise((resolve, reject) => {      
       let result = db.query(`
-	SELECT prw.* FROM product_mails prw WHERE 1=1  and prw.product_id=? and prw.blocked is null and prw.deleted is null`, [productId], (err, result) => {
+	SELECT prw.* FROM product_mails prw WHERE 1=1  
+	and prw.product_id=? 
+	and to_user_id<>0
+	and prw.blocked is null and prw.deleted is null 
+	order by created asc`, [productId], (err, result) => {
        if(err) logger.error(err);      
         (err)
         ? reject(err)
@@ -16,6 +21,26 @@ require('dotenv').config();
       });
     });
   };
+
+  exports.getProductMailPersonal = (productId, userId, ownerId) => {
+    console.log('getProductMailPersonal',productId, userId, ownerId);
+    return new Promise((resolve, reject) => {      
+      let result = db.query(`
+	SELECT prw.* FROM product_mails prw WHERE 1=1  
+	and prw.product_id=? 
+	and (
+	(user_id=? and to_user_id=?) OR (user_id=? and to_user_id=?))
+	and to_user_id<>0
+	and prw.blocked is null and prw.deleted is null 
+	order by created asc`, [productId, userId, ownerId, ownerId, userId], (err, result) => {
+       if(err) logger.error(err);      
+        (err)
+        ? reject(err)
+        : resolve(result ? result : null)
+      });
+    });
+  };
+
 
 
   exports.getMailImages = (mailId) => {

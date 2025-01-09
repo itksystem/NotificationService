@@ -24,12 +24,23 @@ exports.getProductMail = async (req, res) => {
         let userId = await authMiddleware.getUserId(req, res);
         let productId = req.params.productId;
         if(!userId || !productId) throw(422);               
-	console.log(productId, userId); 
-        let mails = await notificationHelper.getProductMail(productId, userId);
+        let filterId = req.query.id;
+	console.log(req);
+	console.log(productId, userId, filterId); 
+
+
+	const response = await warehouseClient.getProductById(commonFunction.getJwtToken(req), productId);
+	if (!response.success)  throw(response?.status || 500)
+	let ownerId = response.data?.ownerId; // Пишем владельцу товара
+        let mails =(!filterId)
+	 ? await notificationHelper.getProductMail(productId, userId, ownerId)
+	 : await notificationHelper.getProductMailPersonal(productId, filterId, ownerId);
+
+         mails.filterId=filterId;
+
 	 const itemsWithMedia = await Promise.all( // Асинхронно загружаем медиафайлы для каждого продукта
 	    mails?.map(async (item) => {
 	        try { // Загружаем медиафайлы для продукта          
-		  console.log(item);
 	          let mediaTtems = await notificationHelper.getMailImages(item.id); 
 		  if(item.user_id==userId) item.self = true;
 	          item.mediaFiles=[];
