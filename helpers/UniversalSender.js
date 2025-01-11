@@ -112,7 +112,7 @@ class UniversalSender {
     }
 
     // Обработка сообщений из очереди
-    async processMessage(msg) {
+    async processing(msg) {
         try {
             const messageContent = JSON.parse(msg.content.toString());
             const { transport, template, to, subject, text, variables } = messageContent;
@@ -123,7 +123,7 @@ class UniversalSender {
                 html = this.fillTemplate(templateContent, variables);
             }
 
-            switch (route.toLowerCase()) {
+            switch (transport.toLowerCase()) {
                 case 'mail':
                     await this.sendEmail(to, subject, html, text);
                     break;
@@ -153,7 +153,7 @@ class UniversalSender {
 
             channel.consume(queue, async (msg) => {
                 if (msg) {
-                    await this.processMessage(msg);
+                    await this.processing(msg);
                     channel.ack(msg);
                 }
             });

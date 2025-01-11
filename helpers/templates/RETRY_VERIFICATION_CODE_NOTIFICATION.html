@@ -52,6 +52,17 @@
             text-decoration: none;
             transition: background-color 0.3s ease;
         }
+	.code {
+	    background: black;
+	    color: white;
+	    font-size: 1rem;
+	    width: fit-content;
+	    text-align: center;
+	    font-weight: 700;
+	    padding: 0.5rem;
+	    left: 40%;
+	    position: relative;
+	}
 
         .container .button:hover {
             background-color: #6dd5ed;
@@ -60,10 +71,9 @@
 </head>
 <body>
     <div class="container">
-        <h1>Добро пожаловать на %HOST_NAME% !</h1>
-        <p>Поздравляем! Вы успешно зарегистрировались на нашем сайте. </br>
-	Теперь вы можете воспользоваться всеми доступными функциями и преимуществами нашего сервиса.</p>
-        <a href="https://%HOST%/" class="button">Перейти на %HOST_NAME%</a>
+       <p>С вашего аккаунта был запрошен новый код верификации.</br>Не передавайте его третьим лицам.
+	</p>
+	<div style="width:100%; align-text: center;"><div class="code">%CODE%</div></div>
     </div>
 </body>
 </html>

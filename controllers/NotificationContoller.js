@@ -25,10 +25,7 @@ exports.getProductMail = async (req, res) => {
         let productId = req.params.productId;
         if(!userId || !productId) throw(422);               
         let filterId = req.query.id;
-	console.log(req);
 	console.log(productId, userId, filterId); 
-
-
 	const response = await warehouseClient.getProductById(commonFunction.getJwtToken(req), productId);
 	if (!response.success)  throw(response?.status || 500)
 	let ownerId = response.data?.ownerId; // Пишем владельцу товара
