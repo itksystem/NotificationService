@@ -1,83 +1,78 @@
 const amqp = require('amqplib');
 const db = require('openfsm-database-connection-producer');
-const { v4: uuidv4 } = require('uuid'); // Убедитесь, что установлен uuid версии 8
-const authMiddleware = require('openfsm-middlewares-auth-service');
+const { v4: uuidv4 } = require('uuid'); // Убедитесь, ч
+// то установлен uuid версии 8
+const SQL = require('common-notification-service').SQL;
+const MESSAGES = require('common-notification-service').MESSAGES;
+const LANGUAGE = 'RU';
 const logger = require('openfsm-logger-handler');
+
 require('dotenv').config();
 
-  exports.getProductMail = (productId, userId, ownerId) => {
-    console.log('getProductMail',productId);
-    return new Promise((resolve, reject) => {      
-      let result = db.query(`
-	SELECT prw.* FROM product_mails prw WHERE 1=1  
-	and prw.product_id=? 
-	and to_user_id<>0
-	and prw.blocked is null and prw.deleted is null 
-	order by created asc`, [productId], (err, result) => {
-       if(err) logger.error(err);      
-        (err)
-        ? reject(err)
-        : resolve(result ? result : null)
+  exports.getProductMail = async (productId) => {
+    const result = await new Promise((resolve, reject) => {
+      db.query(SQL.NOTIFICATION.GET_PRODUCT_MAIL, [productId], (err, result) => {
+        if (err) {
+          logger.error(err);
+          return reject(err);
+        }
+        resolve(result); // Предполагается, что поле isConfirmed
       });
-    });
+    });  
+   return (result?.rows ? result?.rows: null)
   };
 
-  exports.getProductMailPersonal = (productId, userId, ownerId) => {
-    console.log('getProductMailPersonal',productId, userId, ownerId);
-    return new Promise((resolve, reject) => {      
-      let result = db.query(`
-	SELECT prw.* FROM product_mails prw WHERE 1=1  
-	and prw.product_id=? 
-	and (
-	(user_id=? and to_user_id=?) OR (user_id=? and to_user_id=?))
-	and to_user_id<>0
-	and prw.blocked is null and prw.deleted is null 
-	order by created asc`, [productId, userId, ownerId, ownerId, userId], (err, result) => {
-       if(err) logger.error(err);      
-        (err)
-        ? reject(err)
-        : resolve(result ? result : null)
+  exports.getProductMailPersonal = async (productId, userId, ownerId) => {
+    const result = await new Promise((resolve, reject) => {
+      db.query(SQL.NOTIFICATION.GET_PRODUCT_MAIL_PERSONAL, [productId, userId, ownerId], (err, result) => {
+        if (err) {
+          logger.error(err);
+          return reject(err);
+        }
+        resolve(result); // Предполагается, что поле isConfirmed
       });
-    });
+    });  
+    return (result?.rows ? result?.rows: null)
   };
 
 
 
-  exports.getMailImages = (mailId) => {
-    return new Promise((resolve, reject) => {      
-      let result = db.query('SELECT * FROM product_mails_media_storage WHERE mail_id=? and blocked is null and deleted is null', [mailId], (err, result) => {
-        if(err) logger.error(err);      
-        (err)
-        ? reject(err)
-        : resolve(result ? result : null)
+  exports.getMailImages = async (mailId) => {
+    const result = await new Promise((resolve, reject) => {
+      db.query(SQL.NOTIFICATION.GET_PRODUCT_MAIL_PERSONAL, [productId, userId, ownerId], (err, result) => {
+        if (err) {
+          logger.error(err);
+          return reject(err);
+        }
+        resolve(result); // Предполагается, что поле isConfirmed
       });
-    });
+    });  
+    return (result?.rows ? result?.rows: null)
   };
 
 
 
-  exports.setProductMail = (productId, userId, message, toUserId) => {
-    return new Promise((resolve, reject) => {      
-      let result = db.query('INSERT INTO product_mails (product_id, user_id, comment, to_user_id) values (?,?,?,?) ON DUPLICATE KEY UPDATE comment=?', 
-        [productId, userId, message, toUserId, message], (err, result) => {
-        if(err) logger.error(err);      
-        (err)
-        ? reject(false)
-        : resolve(result.insertId)
-      });
-    });
+  exports.setProductMail =  async (productId, userId, message, toUserId) => {
+    let result = db.query( SQL.NOTIFICATION.SET_PRODUCT_MAIL, [productId, userId, message, toUserId, message], (err, result) => {
+        if (err) {
+          logger.error(err);
+          return reject(err);
+        }
+        resolve(result); // Предполагается, что поле isConfirmed
+      });    
+    return (result?.rows?.id ? result?.rows[0].id: null)    
   };
 
 
-  exports.setMailImage = (mailId, mediaId, mediaKey, productId, userId, storage, bucket) => {
-    return new Promise((resolve, reject) => {      
-      let result  = db.query(`INSERT INTO product_mails_media_storage (mail_id, media_id, media_key, product_id, user_id, storage, bucket) VALUES (?,?,?,?,?,?,?)`, 
+  exports.setMailImage = async (mailId, mediaId, mediaKey, productId, userId, storage, bucket) => {
+    let result  = db.query(SQL.NOTIFICATION.SET_MAIL_IMAGE, 
 	    [mailId, mediaId, mediaKey, productId, userId, storage, bucket ], (err, result) => {
-      if(err) logger.error(err);      
-        (err)
-        ? reject(err)
-        : resolve(true)
-      });
-    });
+      if (err) {
+        logger.error(err);
+        return reject(err);
+      }
+      resolve(result); // Предполагается, что поле isConfirmed
+    });    
+  return (result?.rows?.id ? result?.rows[0].id: null)    
   };
 
