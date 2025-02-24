@@ -4,7 +4,7 @@ const axios = require('axios');
 const WebSocket = require('ws');
 const path = require('path');
 const fs = require('fs');
-
+require('dotenv').config({ path: '.env-notification-service' });
 
 /*
 Модель сообщения 
@@ -25,11 +25,11 @@ class UniversalSender {
     constructor(config) {
         // Конфигурация RabbitMQ
         this.rabbitConfig = {
-            host: config.RABBITMQ_HOST || 'rabbitmq-service',
-            port: config.RABBITMQ_PORT || '5672',
-            user: config.RABBITMQ_USER || 'guest',
-            password: config.RABBITMQ_PASSWORD || 'guest',
-            queue: config.RABBITMQ_QUEUE || 'mail',
+            host: config.RABBITMQ_HOST || process.env.RABBITMQ_HOST,
+            port: config.RABBITMQ_PORT || process.env.RABBITMQ_PORT,
+            user: config.RABBITMQ_USER || process.env.RABBITMQ_USER,
+            password: config.RABBITMQ_PASSWORD || process.env.RABBITMQ_PASSWORD,
+            queue: config.RABBITMQ_QUEUE || process.env.RABBITMQ_QUEUE,
         };
 
         // Конфигурация Email

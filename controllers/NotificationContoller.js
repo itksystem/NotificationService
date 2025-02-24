@@ -10,7 +10,7 @@ const WarehouseServiceClientHandler   = require('openfsm-warehouse-service-clien
 const warehouseClient   = new WarehouseServiceClientHandler();
 
 
-require('dotenv').config();
+require('dotenv').config({ path: '.env-notification-service' });
 
 
 const sendResponse = (res, statusCode, data) => {

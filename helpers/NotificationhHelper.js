@@ -7,7 +7,7 @@ const MESSAGES = require('common-notification-service').MESSAGES;
 const LANGUAGE = 'RU';
 const logger = require('openfsm-logger-handler');
 
-require('dotenv').config();
+require('dotenv').config({ path: '.env-notification-service' });
 
   exports.getProductMail = async (productId) => {
     const result = await new Promise((resolve, reject) => {
